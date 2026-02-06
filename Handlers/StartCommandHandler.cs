@@ -1,0 +1,18 @@
+﻿using Telegram.Bot;
+using Telegram.Bot.Types;
+
+namespace bot.Handlers;
+
+public class StartCommandHandler(ILogger<StartCommandHandler> logger) : ICommandHandler
+{
+    public string Command => "/start";
+    public async Task HandleAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+    {
+        logger.LogInformation($"User {message.From?.Username} started bot");
+
+        await botClient.SendMessage(
+            chatId:message.Chat.Id,
+            text:"\ud83d\ude0a Salom! Botga xush kelibsiz!",
+            cancellationToken:cancellationToken);
+    }
+}

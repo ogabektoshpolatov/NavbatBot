@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using bot.Handlers;
+using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -9,13 +10,18 @@ public class TelegramBotService : BackgroundService
 {
     private readonly TelegramBotClient _botClient;
     private readonly ILogger<TelegramBotService> _logger;
+    private readonly IEnumerable<ICommandHandler> _commandHandlers;
 
-    public TelegramBotService(IConfiguration configuration, ILogger<TelegramBotService> logger)
+    public TelegramBotService(
+        IConfiguration configuration, 
+        ILogger<TelegramBotService> logger, 
+        IEnumerable<ICommandHandler> commandHandlers)
     {
         var token = configuration["TelegramBot:Token"];
         Console.WriteLine("token");
         _botClient = new TelegramBotClient(token ?? throw new NullReferenceException(nameof(token)));
         _logger = logger;
+        _commandHandlers = commandHandlers;
     }
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -36,15 +42,20 @@ public class TelegramBotService : BackgroundService
         if (update.Message is not { } message) return;
         if (message.Text is not { } messageText) return;
 
-        var chatId = message.Chat.Id;
-
-        _logger.LogInformation($"Received message: {messageText}");
+        _logger.LogInformation($"Received '{messageText}' from {message.From?.Username}");
         
-        if (messageText.ToLower() == "/start")
+        var handler = _commandHandlers.FirstOrDefault(h => 
+            h.Command.Equals(messageText, StringComparison.OrdinalIgnoreCase));
+
+        if (handler != null)
+        {
+            await handler.HandleAsync(botClient, message, cancellationToken);
+        }
+        else
         {
             await botClient.SendMessage(
-                chatId: chatId,
-                text: "this is my first server bot",
+                chatId: message.Chat.Id,
+                text: "❌ Tushunmadim. /help ni yozing.",
                 cancellationToken: cancellationToken
             );
         }
