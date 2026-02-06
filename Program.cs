@@ -11,9 +11,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHostedService<TelegramBotService>();
 
-builder.Services.AddSingleton<ITelegramBotClient>(
-    new TelegramBotClient("5253246383:AAEAV5JYLkaElN4jzQ1OJb2a27ABQHa2kq4"));
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -28,5 +25,5 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapGet("/health", () => Results.Ok("OK"));
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 app.Run();
