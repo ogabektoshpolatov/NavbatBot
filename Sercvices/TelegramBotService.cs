@@ -44,7 +44,7 @@ public class TelegramBotService : BackgroundService
         {
             await botClient.SendMessage(
                 chatId: chatId,
-                text: "Message",
+                text: "this is my first server bot",
                 cancellationToken: cancellationToken
             );
         }
