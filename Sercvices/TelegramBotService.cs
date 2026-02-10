@@ -1,4 +1,6 @@
 ﻿using bot.Handlers;
+using bot.Handlers.StateHandlers;
+using bot.Models;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -16,7 +18,8 @@ public class TelegramBotService : BackgroundService
     public TelegramBotService(
         IConfiguration configuration, 
         ILogger<TelegramBotService> logger, 
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        SessionService sessionService)
     {
         var token = configuration["TelegramBot:Token"];
         Console.WriteLine("token");
@@ -43,31 +46,70 @@ public class TelegramBotService : BackgroundService
         if (update.Message is not { } message) return;
         if (message.Text is not { } messageText) return;
 
+        messageText = NormalizeMenuCommand(message.Text);
         _logger.LogInformation($"Received '{messageText}' from {message.From?.Username}");
         
         using var scope = _serviceProvider.CreateScope();
-        var commandHandlers = scope.ServiceProvider.GetServices<ICommandHandler>();
-        
-        var handler = commandHandlers.FirstOrDefault(h => 
-            h.Command.Equals(messageText, StringComparison.OrdinalIgnoreCase));
+        var sessionService = scope.ServiceProvider.GetRequiredService<SessionService>();
+        var session = sessionService.GetOrCreateSession(message.Chat.Id);
 
-        if (handler != null)
+        if (messageText.StartsWith('/'))
         {
-            await handler.HandleAsync(botClient, message, cancellationToken);
+            sessionService.ClearSession(message.Chat.Id);
+            var commandHandlers = scope.ServiceProvider.GetServices<ICommandHandler>();
+            var handler = commandHandlers.FirstOrDefault(h => h.Command.Equals(messageText, StringComparison.OrdinalIgnoreCase));
+
+            if (handler != null)
+            {
+                await handler.HandleAsync(botClient, message, cancellationToken);
+                return;
+            }
         }
-        else
+        
+        if (!string.IsNullOrEmpty(session.CurrentState))
         {
-            await botClient.SendMessage(
-                chatId: message.Chat.Id,
-                text: "❌ Tushunmadim. /help ni yozing.",
-                cancellationToken: cancellationToken
-            );
+            await HandleStateLogic(botClient, message, session, sessionService, cancellationToken);
+            return;
         }
+        
+        await botClient.SendMessage(
+            chatId: message.Chat.Id,
+            text: "❌ Tushunmadim. /help ni yozing.",
+            cancellationToken: cancellationToken
+        );
     }
 
     private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
         _logger.LogError(exception, "Error occurred");
         return Task.CompletedTask;
+    }
+    
+    private async Task HandleStateLogic(ITelegramBotClient bot, Message msg, UserSession session, SessionService service, CancellationToken ct)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var stateHandlers = scope.ServiceProvider.GetServices<IStateHandler>();
+        Console.WriteLine(session.CurrentState);
+        Console.WriteLine(session.TaskName);
+        var handler = stateHandlers.FirstOrDefault(h => h.State == session.CurrentState);
+
+        if (handler != null)
+        {
+            await handler.HandleAsync(bot, msg, session, ct);
+        }
+        else
+        {
+            service.ClearSession(msg.Chat.Id);
+            await bot.SendMessage(msg.Chat.Id, "Xatolik yuz berdi, jarayon bekor qilindi.", cancellationToken: ct);
+        }
+    }
+    private string NormalizeMenuCommand(string text)
+    {
+        return text switch
+        {
+            "➕ Create task" => "/createtask",
+            "📋 My Tasks" => "/mytasks",
+            _ => text
+        };
     }
 }

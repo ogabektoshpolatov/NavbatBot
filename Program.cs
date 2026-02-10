@@ -1,5 +1,7 @@
 using bot.Data;
 using bot.Handlers;
+using bot.Handlers.StateHandlers;
+using bot.Handlers.TaskCommands;
 using bot.Sercvices;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,8 +13,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<SessionService>();
 builder.Services.AddHostedService<TelegramBotService>();
+
 builder.Services.AddScoped<ICommandHandler, StartCommandHandler>();
+builder.Services.AddScoped<ICommandHandler, UsersCommandHandler>();
+builder.Services.AddScoped<ICommandHandler, CreateTaskCommandHandler>();
+builder.Services.AddScoped<ICommandHandler, GetTasksCommandHandler>();
+
+builder.Services.AddScoped<IStateHandler, AwaitingTaskNameHandler>();
 
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

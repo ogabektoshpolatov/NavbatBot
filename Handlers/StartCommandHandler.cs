@@ -26,30 +26,42 @@ public class StartCommandHandler(ILogger<StartCommandHandler> logger, AppDbConte
             
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync(cancellationToken);
+            
+            Console.WriteLine($"User {user.UserId} successfully saved");
         }
 
-        Console.WriteLine($"User {dbUser.UserId}");
-
+        Console.WriteLine("StartCommandHandler.HandleAsync");
         await botClient.SetMyCommands(new[]
         {
             new BotCommand { Command = "start", Description = "Open main menu" },
         }, scope:null, languageCode:null, cancellationToken: cancellationToken);
-        // var keyboard = new InlineKeyboardMarkup(new[]
-        // {
-        //     new[]
-        //     {
-        //       InlineKeyboardButton.WithCallbackData("\u2b05\ufe0f Left", "button_left"),
-        //       InlineKeyboardButton.WithCallbackData("\u2b05\ufe0f Right", "button_right"),
-        //     },
-        //     new[]
-        //     {
-        //         InlineKeyboardButton.WithCallbackData("ℹ️ Info", "button_info")
-        //     }
-        // });
+        
+        var keyboard = new InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+              InlineKeyboardButton.WithCallbackData("\u2b05\ufe0f Left", "button_left"),
+              InlineKeyboardButton.WithCallbackData("\u2b05\ufe0f Right", "button_right"),
+            },
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData("ℹ️ Info", "button_info")
+            }
+        });
+        
+        var replykeyboard = new ReplyKeyboardMarkup(new[]
+        {
+            new KeyboardButton[] { "➕ Create task", "📋 My Tasks" },
+        })
+        {
+            ResizeKeyboard = true,
+            OneTimeKeyboard = false
+        };
 
         await botClient.SendMessage(
             chatId:message.Chat.Id,
             text:"\ud83d\ude0a Salom! Botga xush kelibsiz!",
+            replyMarkup:replykeyboard,
             cancellationToken:cancellationToken);
     }
 }
