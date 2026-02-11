@@ -1,5 +1,6 @@
 using bot.Data;
 using bot.Handlers;
+using bot.Handlers.Callbacks;
 using bot.Handlers.StateHandlers;
 using bot.Handlers.TaskCommands;
 using bot.Sercvices;
@@ -16,6 +17,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<SessionService>();
 builder.Services.AddHostedService<TelegramBotService>();
+builder.Services.AddScoped<TaskUiRenderer>();
 
 builder.Services.AddScoped<ICommandHandler, StartCommandHandler>();
 builder.Services.AddScoped<ICommandHandler, UsersCommandHandler>();
@@ -23,6 +25,9 @@ builder.Services.AddScoped<ICommandHandler, CreateTaskCommandHandler>();
 builder.Services.AddScoped<ICommandHandler, GetTasksCommandHandler>();
 
 builder.Services.AddScoped<IStateHandler, AwaitingTaskNameHandler>();
+
+builder.Services.AddScoped<ICallbackHandler, TaskMenuCallbackHandler>();
+builder.Services.AddScoped<ICallbackHandler, AddUserCallbackHandler>();
 
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

@@ -1,4 +1,5 @@
 ﻿using bot.Handlers;
+using bot.Handlers.Callbacks;
 using bot.Handlers.StateHandlers;
 using bot.Models;
 using Telegram.Bot;
@@ -18,8 +19,7 @@ public class TelegramBotService : BackgroundService
     public TelegramBotService(
         IConfiguration configuration, 
         ILogger<TelegramBotService> logger, 
-        IServiceProvider serviceProvider,
-        SessionService sessionService)
+        IServiceProvider serviceProvider)
     {
         var token = configuration["TelegramBot:Token"];
         Console.WriteLine("token");
@@ -57,13 +57,26 @@ public class TelegramBotService : BackgroundService
 
     private async Task HandleCallbackUpdate(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
     {
-        if(callbackQuery.Data is not {} callback)
+        var data = callbackQuery.Data;
+        if (string.IsNullOrEmpty(data)) return;
+        
+        _logger.LogInformation("Callback from @{User}: {Data}", callbackQuery.From.Username, data);
+        
+        using var scope = _serviceProvider.CreateScope();
+        var handlers = scope.ServiceProvider.GetServices<ICallbackHandler>();
+        
+        var handler = handlers.FirstOrDefault(h => h.CanHandle(data));
+        if (handler is not null)
         {
-            await botClient.SendMessage(chatId:callbackQuery.From.Id, text:"Ishlamadi", cancellationToken:cancellationToken);
+            await handler.HandleAsync(botClient, callbackQuery, cancellationToken);
         }
         else
         {
-            await botClient.SendMessage(chatId:callbackQuery.From.Id, text:"Ishladi", cancellationToken:cancellationToken);
+            _logger.LogWarning("No callback handler found for: {Data}", data);
+            await botClient.AnswerCallbackQuery(
+                callbackQuery.Id,
+                "❓ Noma'lum amal.",
+                cancellationToken: cancellationToken);
         }
     }
 
@@ -71,7 +84,7 @@ public class TelegramBotService : BackgroundService
     {
         if (message.Text is not { } messageText) return;
 
-        messageText = NormalizeMenuCommand(messageText);
+        message.Text = messageText = NormalizeMenuCommand(messageText);
         _logger.LogInformation($"Received '{messageText}' from {message.From?.Username}");
 
         using var scope = _serviceProvider.CreateScope();

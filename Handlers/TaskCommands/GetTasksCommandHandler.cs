@@ -27,8 +27,7 @@ public class GetTasksCommandHandler(AppDbContext dbContext) : ICommandHandler
             {
                 InlineKeyboardButton.WithCallbackData(
                     text: t.Name ?? "NoName",
-                    callbackData: $"{t.Id}"
-                    
+                    callbackData: $"task:{t.Id}"
                 )
             })
             .ToList();
