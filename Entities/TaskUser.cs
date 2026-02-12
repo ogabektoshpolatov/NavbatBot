@@ -9,4 +9,5 @@ public class TaskUser
     public User User { get; set; } = null!;
     public int QueuePosition { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool IsCurrent { get; set; } = false;
 }
