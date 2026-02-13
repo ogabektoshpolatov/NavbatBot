@@ -23,8 +23,11 @@ builder.Services.AddScoped<ICommandHandler, StartCommandHandler>();
 builder.Services.AddScoped<ICommandHandler, UsersCommandHandler>();
 builder.Services.AddScoped<ICommandHandler, CreateTaskCommandHandler>();
 builder.Services.AddScoped<ICommandHandler, GetTasksCommandHandler>();
+builder.Services.AddScoped<ICommandHandler, GetGroupIdCommandHandler>();
 
 builder.Services.AddScoped<IStateHandler, AwaitingTaskNameHandler>();
+builder.Services.AddScoped<IStateHandler, AwaitingGroupIdHandler>();
+builder.Services.AddScoped<IStateHandler, AwaitingAutoNotifyHandler>();
 
 builder.Services.AddScoped<ICallbackHandler, TaskMenuCallbackHandler>();
 builder.Services.AddScoped<ICallbackHandler, AddUserCallbackHandler>();
@@ -33,6 +36,7 @@ builder.Services.AddScoped<ICallbackHandler, DeleteUserCallbackHandler>();
 builder.Services.AddScoped<ICallbackHandler, DeleteUserConfirmCallbackHandler>();
 builder.Services.AddScoped<ICallbackHandler, ViewTaskCallbackHandler>();
 builder.Services.AddScoped<ICallbackHandler, SkipQueueCallbackHandler>();
+builder.Services.AddScoped<ICallbackHandler, NotifyCallbackHandler>();
 
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

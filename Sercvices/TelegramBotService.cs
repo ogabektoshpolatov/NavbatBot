@@ -85,6 +85,11 @@ public class TelegramBotService : BackgroundService
         if (message.Text is not { } messageText) return;
 
         message.Text = messageText = NormalizeMenuCommand(messageText);
+        
+        if (messageText.StartsWith('/'))
+        {
+            messageText = RemoveBotUsername(messageText);
+        }
         _logger.LogInformation($"Received '{messageText}' from {message.From?.Username}");
 
         using var scope = _serviceProvider.CreateScope();
@@ -151,5 +156,11 @@ public class TelegramBotService : BackgroundService
             "📋 My Tasks" => "/mytasks",
             _ => text
         };
+    }
+    
+    private string RemoveBotUsername(string command)
+    {
+        var atIndex = command.IndexOf('@');
+        return atIndex > 0 ? command.Substring(0, atIndex) : command;
     }
 }

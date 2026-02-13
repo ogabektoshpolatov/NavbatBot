@@ -12,22 +12,17 @@ public class AwaitingTaskNameHandler(AppDbContext dbContext, SessionService serv
     public async Task HandleAsync(ITelegramBotClient bot, Message msg, UserSession session, CancellationToken ct)
     {
         session.TaskName = msg.Text;
-        session.CurrentState = BotStates.AwaitingTaskName;
+        
+        session.CurrentState = BotStates.AwaitingGroupId;
         service.UpdateSession(session);
 
-        var task = new Entities.Task()
-        {
-            Name = msg.Text,
-            ScheduleTime = DateTime.UtcNow,
-            CreatedDate = DateTime.UtcNow,
-            TelegramGroupId = -4972162716,
-            CreatedUserId = session.UserId,
-            IsActive = true
-        };
-        
-        dbContext.Tasks.Add(task);
-        await dbContext.SaveChangesAsync(ct);
-        
-        await bot.SendMessage(msg.Chat.Id, $"✅ Task '{msg.Text}' saqlandi!", cancellationToken: ct);
+        await bot.SendMessage(
+            chatId: msg.Chat.Id, 
+            text: "📱 Endi Telegram Group ID ni yuboring:\n\n" +
+                  "Group ID ni qanday topish:\n" +
+                  "1. Botni guruhga qo'shing\n" +
+                  "2. Guruhda /start buyrug'ini yuboring\n" +
+                  "3. Bot sizga Group ID ni ko'rsatadi", 
+            cancellationToken: ct);
     }
 }

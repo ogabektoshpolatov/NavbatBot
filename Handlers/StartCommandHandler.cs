@@ -34,6 +34,7 @@ public class StartCommandHandler(ILogger<StartCommandHandler> logger, AppDbConte
         await botClient.SetMyCommands(new[]
         {
             new BotCommand { Command = "start", Description = "Open main menu" },
+            new BotCommand { Command = "getGroupId", Description = "Guruh ID sini olish (faqat guruhda)" },
         }, scope:null, languageCode:null, cancellationToken: cancellationToken);
         
         var keyboard = new InlineKeyboardMarkup(new[]
