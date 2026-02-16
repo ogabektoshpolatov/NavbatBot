@@ -10,9 +10,8 @@ public class BotKeyboards
 {
     public static InlineKeyboardMarkup TaskMenu(int taskId) => new(new[]
     {
-        new[] { InlineKeyboardButton.WithCallbackData("👥 Navbatchilikni ko`rish", CB.ViewUsers(taskId)) },
-        new[] { InlineKeyboardButton.WithCallbackData("➕ User qo'shish",     CB.AddUser(taskId)) },
-        new[] { InlineKeyboardButton.WithCallbackData("➖ User o'chirish",    CB.RemoveUser(taskId)) },
+        new[] { InlineKeyboardButton.WithCallbackData("👥 Navbatchilikni ko`rish", CB.ViewUsers(taskId)),InlineKeyboardButton.WithCallbackData("👥 Navbatchi belgilsh",    CB.AssignUserToQueue(taskId)) },
+        new[] { InlineKeyboardButton.WithCallbackData("➕ User qo'shish",     CB.AddUser(taskId)), InlineKeyboardButton.WithCallbackData("➖ User o'chirish",    CB.RemoveUser(taskId))},
     });
     
     public static InlineKeyboardMarkup BackToTask(int taskId) => new(new[]

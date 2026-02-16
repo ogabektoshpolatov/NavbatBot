@@ -83,6 +83,18 @@ public class TelegramBotService : BackgroundService
     private async Task HandleMessageUpdate(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
     {
         if (message.Text is not { } messageText) return;
+        
+        if (messageText != "/start")
+        {
+            if (message.From.Id != 5592363193)
+            {
+                await botClient.SendMessage(
+                    chatId: message.From.Id,
+                    text: "Sizda boshqa buyruqlarni bajarishga ruxsat yo‘q. Bu bot faqat @o_toshpolatov buyruqlarini bajaradi.",
+                    cancellationToken: cancellationToken
+                );
+            }
+        }
 
         message.Text = messageText = NormalizeMenuCommand(messageText);
         

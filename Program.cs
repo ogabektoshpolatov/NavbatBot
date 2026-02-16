@@ -5,6 +5,7 @@ using bot.Handlers.StateHandlers;
 using bot.Handlers.TaskCommands;
 using bot.Sercvices;
 using Microsoft.EntityFrameworkCore;
+using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +17,16 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<SessionService>();
+builder.Services.AddSingleton<TaskNotificationService>();
 builder.Services.AddHostedService<TelegramBotService>();
+builder.Services.AddHostedService<NotificationSchedulerService>();
 builder.Services.AddScoped<TaskUiRenderer>();
+builder.Services.AddSingleton<ITelegramBotClient>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var token = configuration["TelegramBot:Token"];
+    return new TelegramBotClient(token ?? throw new NullReferenceException("TelegramBot:Token"));
+});
 
 builder.Services.AddScoped<ICommandHandler, StartCommandHandler>();
 builder.Services.AddScoped<ICommandHandler, UsersCommandHandler>();
@@ -37,6 +46,8 @@ builder.Services.AddScoped<ICallbackHandler, DeleteUserConfirmCallbackHandler>()
 builder.Services.AddScoped<ICallbackHandler, ViewTaskCallbackHandler>();
 builder.Services.AddScoped<ICallbackHandler, SkipQueueCallbackHandler>();
 builder.Services.AddScoped<ICallbackHandler, NotifyCallbackHandler>();
+builder.Services.AddScoped<ICallbackHandler, AssignUserToQueueHandler>();
+builder.Services.AddScoped<ICallbackHandler, AssignUserToQueueConfirmHandler>();
 
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -61,4 +72,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+app.MapGet("/test-notification", async (TaskNotificationService notificationService) =>
+{
+    await notificationService.SendDailyNotifications();
+    return Results.Ok(new { message = "Notification sent!", timestamp = DateTime.UtcNow });
+});
 app.Run();
