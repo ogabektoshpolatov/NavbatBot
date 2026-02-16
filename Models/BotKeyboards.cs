@@ -44,4 +44,27 @@ public class BotKeyboards
         new[] { InlineKeyboardButton.WithCallbackData("Navbatni surish",CB.SkipQueue(taskId)) },
         new[] { InlineKeyboardButton.WithCallbackData("⬅ Orqaga",CB.Task(taskId)) },
     });
+    
+    public static InlineKeyboardMarkup TaskCompletionButton(int taskId)
+    {
+        return new InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData("✅ Bajarildi", $"complete_task:{taskId}")
+            }
+        });
+    }
+    
+    public static InlineKeyboardMarkup QueueConfirmationButtons(int taskId)
+    {
+        return new InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData("✅ Qabul qilaman", $"accept_queue:{taskId}"),
+                InlineKeyboardButton.WithCallbackData("❌ Rad etaman", $"reject_queue:{taskId}")
+            }
+        });
+    }
 }
