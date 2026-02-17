@@ -5,6 +5,7 @@ public class NotificationSchedulerService(
     TaskNotificationService notificationService) : BackgroundService
 {
     private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
+    
     private readonly TimeSpan _morningTime = new(18, 12, 0);   // 09:00
     private readonly TimeSpan _eveningTime = new(23, 12, 0);  // 18:00
 
