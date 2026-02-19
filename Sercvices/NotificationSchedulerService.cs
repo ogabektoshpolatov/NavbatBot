@@ -6,8 +6,8 @@ public class NotificationSchedulerService(
 {
     private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
     
-    private readonly TimeSpan _morningTime = new(20, 12, 0);   // 09:00
-    private readonly TimeSpan _eveningTime = new(23, 12, 0);  // 18:00
+    private readonly TimeSpan _morningTime = new(10, 50, 0);   // 09:00
+    private readonly TimeSpan _eveningTime = new(15, 50, 0);  // 18:00
 
     private DateTime _lastMorningRun = DateTime.MinValue;
     private DateTime _lastEveningRun = DateTime.MinValue;
@@ -16,9 +16,12 @@ public class NotificationSchedulerService(
         logger.LogInformation("🕐 NotificationScheduler boshlandi!");
 
         while (!stoppingToken.IsCancellationRequested)
-        {
+        {   
             try
             {
+                logger.LogInformation("TaskScheduler boshlandi!");
+                logger.LogInformation("Morning time " + _morningTime);
+                logger.LogInformation("Evening time " + _eveningTime);
                 await CheckAndSendNotifications();
             }
             catch (Exception ex)
@@ -32,6 +35,7 @@ public class NotificationSchedulerService(
     
     private async Task CheckAndSendNotifications()
     {
+        logger.LogInformation("CheckAndSendNotifications method ichiga kirdi");
         var now = DateTime.Now;
         var currentTime = now.TimeOfDay;
         var today = now.Date;
