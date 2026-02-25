@@ -9,6 +9,11 @@ public class NotificationSchedulerService(
 {
     private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
 
+    private static readonly TimeZoneInfo LocalZone =
+        TimeZoneInfo.CreateCustomTimeZone("UZT", TimeSpan.FromHours(5), "Uzbekistan Time", "Uzbekistan Time");
+
+    private static DateTime LocalNow => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, LocalZone);
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("🕐 NotificationScheduler boshlandi!");
@@ -34,12 +39,12 @@ public class NotificationSchedulerService(
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var notificationService = scope.ServiceProvider.GetRequiredService<TaskNotificationService>();
 
-        var now = DateTime.UtcNow;
-        
-        var currentTime = now.TimeOfDay;
-        var today = now.Date;
+        var localNow = LocalNow;           // e.g. 09:01 in Tashkent
+        var currentTime = localNow.TimeOfDay;
+        var today = localNow.Date;
 
-        // Har bir task o'zining NotifyTime va NotifyIntervalDays ga qarab ishlaydi
+        logger.LogInformation("🕐 Local time (UTC+5): {LocalNow}", localNow.ToString("dd.MM.yyyy HH:mm"));
+
         var tasksBase = await dbContext.Tasks
             .Where(t =>
                 t.IsActive &&
@@ -47,13 +52,15 @@ public class NotificationSchedulerService(
                 t.TelegramGroupId != null)
             .ToListAsync(ct);
 
-        // 2️⃣ Time logic in memory (NO EF errors)
+        // NotifyTime is stored as local time (UTC+5), so compare directly with local currentTime
         var tasksDue = tasksBase
             .Where(t =>
                 currentTime >= t.NotifyTime &&
                 currentTime < t.NotifyTime + TimeSpan.FromMinutes(2) &&
                 (t.LastNotifiedAt == null ||
-                 t.LastNotifiedAt.Value.Date.AddDays(t.NotifyIntervalDays) <= today))
+                 // LastNotifiedAt is stored as UTC — convert to local for date comparison
+                 TimeZoneInfo.ConvertTimeFromUtc(t.LastNotifiedAt.Value, LocalZone)
+                     .Date.AddDays(t.NotifyIntervalDays) <= today))
             .ToList();
 
         logger.LogInformation("📊 {Count} ta task bildirishnoma yuborish kerak", tasksDue.Count);
@@ -64,7 +71,8 @@ public class NotificationSchedulerService(
             {
                 await notificationService.SendTaskNotificationById(task.Id, ct);
 
-                task.LastNotifiedAt = now;
+                // Always save LastNotifiedAt as UTC
+                task.LastNotifiedAt = DateTime.UtcNow;
                 await dbContext.SaveChangesAsync(ct);
             }
             catch (Exception ex)
