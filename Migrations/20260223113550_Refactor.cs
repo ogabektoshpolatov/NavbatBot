@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace bot.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class Refactor : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,10 +19,19 @@ namespace bot.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    ScheduleTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
-                    TelegramGroupId = table.Column<long>(type: "bigint", nullable: false)
+                    CreatedUserId = table.Column<long>(type: "bigint", nullable: false),
+                    TelegramGroupId = table.Column<long>(type: "bigint", nullable: true),
+                    SendToGroup = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    InviteToken = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    InviteIsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    MaxMembers = table.Column<int>(type: "integer", nullable: false, defaultValue: 50),
+                    NotifyIntervalDays = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                    NotifyTime = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    LastNotifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ConfirmationHours = table.Column<int>(type: "integer", nullable: false, defaultValue: 24)
                 },
                 constraints: table =>
                 {
@@ -37,7 +46,10 @@ namespace bot.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Username = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    IsBanned = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    LanguageCode = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
                 },
                 constraints: table =>
@@ -54,7 +66,15 @@ namespace bot.Migrations
                     TaskId = table.Column<int>(type: "integer", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     QueuePosition = table.Column<int>(type: "integer", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    IsCurrent = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    IsPendingConfirmation = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    Role = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    JoinedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    UserQueueTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    PendingConfirmationSince = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TotalServedCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    RejectionCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
                 },
                 constraints: table =>
                 {
@@ -72,6 +92,12 @@ namespace bot.Migrations
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_InviteToken",
+                table: "Tasks",
+                column: "InviteToken",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaskUsers_TaskId_QueuePosition",

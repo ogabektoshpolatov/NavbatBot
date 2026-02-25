@@ -13,41 +13,49 @@ public class SkipQueueCallbackHandler(AppDbContext dbContext) : ICallbackHandler
         return parts.Length == 3 && parts[0] == "task" && parts[2] == "skipQueue";
     }
 
-    public async Task HandleAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
+    public async Task HandleAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken ct)
     {
-        var taskId = int.Parse(callbackQuery!.Data!.Split(':')[1]);
-        
-        var taskUsers = await dbContext.TaskUsers.Where(x => x.TaskId == taskId).ToListAsync(cancellationToken);
+        var taskId = int.Parse(callbackQuery.Data!.Split(':')[1]);
+        var userId = callbackQuery.From.Id;
+
+        var task = await dbContext.Tasks.FirstOrDefaultAsync(t => t.Id == taskId, ct);
+        if (task is null || task.CreatedUserId != userId)
+        {
+            await botClient.AnswerCallbackQuery(
+                callbackQuery.Id, "⛔ Ruxsat yo'q!", showAlert: true, cancellationToken: ct);
+            return;
+        }
+
+        var taskUsers = await dbContext.TaskUsers
+            .Where(x => x.TaskId == taskId && x.IsActive)
+            .OrderBy(x => x.QueuePosition)
+            .ToListAsync(ct);
+
         var currentQueueUser = taskUsers.FirstOrDefault(x => x.IsCurrent);
 
-        if (currentQueueUser != null)
+        if (currentQueueUser is null)
         {
-            var queuePosition = currentQueueUser.QueuePosition;
-            var nextTaskUser = await dbContext.TaskUsers.Where(tu => tu.QueuePosition > queuePosition)
-                .OrderBy(tu => tu.QueuePosition)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (nextTaskUser != null)
-            {
-                nextTaskUser.IsCurrent = true;
-                nextTaskUser.UserQueueTime = DateTime.UtcNow;
-                await dbContext.SaveChangesAsync(cancellationToken);
-            }
-            else
-            {
-                if (await dbContext.TaskUsers.AnyAsync(tu => tu.TaskId == taskId, cancellationToken))
-                {
-                    var firstTaskUser = await dbContext.TaskUsers.FirstOrDefaultAsync(tu => tu.TaskId == taskId, cancellationToken);
-                    firstTaskUser!.IsCurrent = true;
-                    firstTaskUser!.UserQueueTime = DateTime.UtcNow;
-                    await dbContext.SaveChangesAsync(cancellationToken);
-                }
-            }
-
-            currentQueueUser.IsCurrent = false;
-            currentQueueUser.UserQueueTime = null;
-            
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await botClient.AnswerCallbackQuery(
+                callbackQuery.Id, "⚠️ Hozirda navbatchi yo'q!", cancellationToken: ct);
+            return;
         }
+
+        var nextTaskUser = taskUsers
+            .Where(tu => tu.QueuePosition > currentQueueUser.QueuePosition)
+            .OrderBy(tu => tu.QueuePosition)
+            .FirstOrDefault()
+            ?? taskUsers.OrderBy(tu => tu.QueuePosition).FirstOrDefault();
+
+        currentQueueUser.IsCurrent = false;
+        currentQueueUser.UserQueueTime = null;
+
+        if (nextTaskUser != null && nextTaskUser.Id != currentQueueUser.Id)
+        {
+            nextTaskUser.IsCurrent = true;
+            nextTaskUser.UserQueueTime = DateTime.UtcNow;
+        }
+
+        await dbContext.SaveChangesAsync(ct);
+        await botClient.AnswerCallbackQuery(callbackQuery.Id, "✅ Navbat o'tkazildi!", cancellationToken: ct);
     }
 }

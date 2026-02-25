@@ -1,61 +1,76 @@
-﻿namespace bot.Sercvices;
+﻿using bot.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace bot.Sercvices;
 
 public class NotificationSchedulerService(
-    ILogger<NotificationSchedulerService> logger, 
-    TaskNotificationService notificationService) : BackgroundService
+    ILogger<NotificationSchedulerService> logger,
+    IServiceProvider serviceProvider) : BackgroundService
 {
     private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
-    
-    private readonly TimeSpan _morningTime = new(10, 50, 0);   // 09:00
-    private readonly TimeSpan _eveningTime = new(15, 50, 0);  // 18:00
 
-    private DateTime _lastMorningRun = DateTime.MinValue;
-    private DateTime _lastEveningRun = DateTime.MinValue;
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("🕐 NotificationScheduler boshlandi!");
 
         while (!stoppingToken.IsCancellationRequested)
-        {   
+        {
             try
             {
-                logger.LogInformation("TaskScheduler boshlandi!");
-                logger.LogInformation("Morning time " + _morningTime);
-                logger.LogInformation("Evening time " + _eveningTime);
-                await CheckAndSendNotifications();
+                await CheckAndSendNotifications(stoppingToken);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "❌ Notification scheduler da xatolik");
+                logger.LogError(ex, "❌ Notification scheduler xatolik");
             }
-            
+
             await Task.Delay(_checkInterval, stoppingToken);
         }
     }
-    
-    private async Task CheckAndSendNotifications()
+
+    private async Task CheckAndSendNotifications(CancellationToken ct)
     {
-        logger.LogInformation("CheckAndSendNotifications method ichiga kirdi");
-        var now = DateTime.Now;
+        using var scope = serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var notificationService = scope.ServiceProvider.GetRequiredService<TaskNotificationService>();
+
+        var now = DateTime.UtcNow;
+        
         var currentTime = now.TimeOfDay;
         var today = now.Date;
 
-        // if (currentTime >= _morningTime && 
-        //     currentTime < _morningTime.Add(TimeSpan.FromMinutes(2)) &&
-        //     _lastMorningRun.Date < today)
-        // {
-        //     logger.LogInformation("🌅 Ertalabki notification jo'natilmoqda...");
-        //     await notificationService.SendDailyNotifications();
-        //     _lastMorningRun = now;
-        // }
+        // Har bir task o'zining NotifyTime va NotifyIntervalDays ga qarab ishlaydi
+        var tasksBase = await dbContext.Tasks
+            .Where(t =>
+                t.IsActive &&
+                t.SendToGroup &&
+                t.TelegramGroupId != null)
+            .ToListAsync(ct);
 
-        if (currentTime >= _eveningTime && 
-            currentTime < _eveningTime.Add(TimeSpan.FromMinutes(2)) &&
-            _lastEveningRun.Date < today)
+        // 2️⃣ Time logic in memory (NO EF errors)
+        var tasksDue = tasksBase
+            .Where(t =>
+                currentTime >= t.NotifyTime &&
+                currentTime < t.NotifyTime + TimeSpan.FromMinutes(2) &&
+                (t.LastNotifiedAt == null ||
+                 t.LastNotifiedAt.Value.Date.AddDays(t.NotifyIntervalDays) <= today))
+            .ToList();
+
+        logger.LogInformation("📊 {Count} ta task bildirishnoma yuborish kerak", tasksDue.Count);
+
+        foreach (var task in tasksDue)
         {
-            logger.LogInformation("🌆 Kechki notification jo'natilmoqda...");
-            await notificationService.SendDailyNotifications();
-            _lastEveningRun = now;
+            try
+            {
+                await notificationService.SendTaskNotificationById(task.Id, ct);
+
+                task.LastNotifiedAt = now;
+                await dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "❌ Task {TaskId} bildirishnoma xatolik", task.Id);
+            }
         }
     }
 }

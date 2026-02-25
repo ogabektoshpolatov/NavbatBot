@@ -5,15 +5,15 @@ using Telegram.Bot.Types;
 
 namespace bot.Handlers.StateHandlers;
 
-public class AwaitingAutoNotifyHandler(SessionService service) : IStateHandler
+public class AwaitingNotifyTimeHandler(SessionService service) : IStateHandler
 {
-    public string State => BotStates.AwaitingAutoNotify;
+    public string State => BotStates.AwaitingNotifyTime;
 
     public async Task HandleAsync(ITelegramBotClient bot, Message msg, UserSession session, CancellationToken ct)
     {
         await bot.SendMessage(
             chatId: msg.Chat.Id,
-            text: "⚠️ Iltimos, yuqoridagi tugmalardan birini tanlang!",
+            text: "⚠️ Iltimos, yuqoridagi tugmalardan vaqtni tanlang!",
             cancellationToken: ct);
     }
 }
