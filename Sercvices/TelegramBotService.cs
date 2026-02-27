@@ -80,6 +80,7 @@ public class TelegramBotService : BackgroundService
         }
         else
         {
+            if (data == "noop") return;
             _logger.LogWarning("Handler topilmadi: {Data}", data);
             await botClient.AnswerCallbackQuery(
                 callbackQuery.Id,

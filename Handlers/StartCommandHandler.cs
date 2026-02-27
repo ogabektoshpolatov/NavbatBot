@@ -86,12 +86,17 @@ public class StartCommandHandler(
         var task = await dbContext.Tasks
             .Include(t => t.TaskUsers)
             .FirstOrDefaultAsync(t => t.InviteToken == token, ct);
-
+        
         if (task is null)
         {
             await botClient.SendMessage(
                 chatId: userId,
-                text: "❌ Invite link topilmadi yoki muddati o'tgan.",
+                text: "👋 Salom, {message.From?.FirstName}!\n\n" +
+                      "🤖 Bu bot navbatchilikni boshqarish uchun:\n\n" +
+                      "➕ Task yarating → do'stlaringizni invite qiling\n" +
+                      "🔄 Bot avtomatik navbatni boshqaradi\n" +
+                      "🔔 Har kuni belgilangan vaqtda xabar yuboradi\n\n" +
+                      "👇 Boshlash uchun tanlang:",
                 replyMarkup: BotKeyboards.MainMenu(),
                 cancellationToken: ct);
             return;

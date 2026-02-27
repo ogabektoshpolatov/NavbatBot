@@ -9,7 +9,7 @@ public class BotKeyboards
     public static ReplyKeyboardMarkup MainMenu() => new(new[]
     {
         new KeyboardButton[] { "➕ Task yaratish", "📋 Mening tasklarim" },
-        new KeyboardButton[] { "🔔 Takliflarim", "⚙️ Sozlamalar" }
+        // new KeyboardButton[] { "🔔 Takliflarim", "⚙️ Sozlamalar" }
     })
     {
         ResizeKeyboard = true,

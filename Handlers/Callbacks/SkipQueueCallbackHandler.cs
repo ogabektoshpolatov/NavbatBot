@@ -36,7 +36,7 @@ public class SkipQueueCallbackHandler(AppDbContext dbContext) : ICallbackHandler
         if (currentQueueUser is null)
         {
             await botClient.AnswerCallbackQuery(
-                callbackQuery.Id, "⚠️ Hozirda navbatchi yo'q!", cancellationToken: ct);
+                callbackQuery.Id, "\ud83d\udc64 Hali hech kim navbatchi etib tayinlanmagan", cancellationToken: ct);
             return;
         }
 

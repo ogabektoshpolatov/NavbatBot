@@ -74,7 +74,7 @@ public class TaskReorderUpCallbackHandler(AppDbContext db) : ICallbackHandler
         var prev = taskUsers.LastOrDefault(tu => tu.QueuePosition < current.QueuePosition);
         if (prev is null)
         {
-            await bot.AnswerCallbackQuery(cq.Id, "⚠️ Allaqachon birinchi!", cancellationToken: ct);
+            await bot.AnswerCallbackQuery(cq.Id, "⚠️ Bu a'zo allaqachon birinchi o'rinda!", cancellationToken: ct);
             return;
         }
 
@@ -141,7 +141,7 @@ public class TaskReorderDownCallbackHandler(AppDbContext db) : ICallbackHandler
         var next = taskUsers.FirstOrDefault(tu => tu.QueuePosition > current.QueuePosition);
         if (next is null)
         {
-            await bot.AnswerCallbackQuery(cq.Id, "⚠️ Allaqachon oxirgi!", cancellationToken: ct);
+            await bot.AnswerCallbackQuery(cq.Id, "⚠️ Bu a'zo allaqachon oxirgi o'rinda!", cancellationToken: ct);
             return;
         }
 
