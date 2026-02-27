@@ -192,8 +192,8 @@ public class TelegramBotService : BackgroundService
 
     private string NormalizeMenuCommand(string text) => text switch
     {
-        "➕ Task yaratish" => "/createtask",
-        "📋 Mening tasklarim" => "/mytasks",
+        "➕ Yangi navbat yaratish" => "/createtask",
+        "📋 Mening navbatlarim" => "/mytasks",
         "🔔 Takliflarim" => "/mytasks",
         "⚙️ Sozlamalar" => "/start",
         _ => text

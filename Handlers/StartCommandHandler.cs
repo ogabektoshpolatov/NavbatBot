@@ -70,8 +70,11 @@ public class StartCommandHandler(
 
         await botClient.SendMessage(
             chatId: userId,
-            text: "👋 Salom! Navbat boshqaruv botiga xush kelibsiz!\n\n" +
-                  "📌 Quyidagilardan birini tanlang:",
+            text: $"👋 Salom, {message.From?.FirstName}!\n\n" +
+                  "🗂 *Navbatchilik Bot*ga xush kelibsiz!\n\n" +
+                  "Bu bot yordamida jamoangizda navbatchilikni\n" +
+                  "tartibli va avtomatik boshqarishingiz mumkin.\n\n" +
+                  "👇 Boshlash uchun tanlang:",
             replyMarkup: BotKeyboards.MainMenu(),
             cancellationToken: cancellationToken);
     }

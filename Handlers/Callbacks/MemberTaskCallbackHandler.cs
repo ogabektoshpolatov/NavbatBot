@@ -45,7 +45,7 @@ public class MemberTaskCallbackHandler(AppDbContext db) : ICallbackHandler
             .FirstOrDefaultAsync(tu => tu.TaskId == taskId && tu.IsCurrent, ct);
 
         var statusText = myTaskUser.IsCurrent
-            ? "🟢 Hozir siz navbatchisiz!"
+            ? "🟢 Siz navbatchisiz!"
             : myTaskUser.IsPendingConfirmation
                 ? "⏳ Tasdiqlash kutilmoqda..."
                 : $"📍 Sizning navbatingiz: {myTaskUser.QueuePosition}-o'rin";

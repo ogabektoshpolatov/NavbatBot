@@ -23,7 +23,10 @@ public class AwaitingTaskNameHandler(SessionService service) : IStateHandler
 
         await bot.SendMessage(
             chatId: msg.Chat.Id,
-            text: "📋 Task tavsifini kiriting:\n\n(Ixtiyoriy — o'tkazib yuborish uchun /skip yozing)",
+            text: "✅ Navbatchilik nomi saqlandi!\n\n" +
+                  "📋 Ikkinchi qadam: navbat tavsifini kiriting.\n" +
+                  "Masalan: \"Har haftada 1 kishi 1 kun tozalaydi\"\n\n" +
+                  "(Ixtiyoriy — o'tkazib yuborish uchun /skip)",
             cancellationToken: ct);
     }
 }

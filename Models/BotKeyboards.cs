@@ -8,7 +8,7 @@ public class BotKeyboards
     // === ASOSIY MENYU ===
     public static ReplyKeyboardMarkup MainMenu() => new(new[]
     {
-        new KeyboardButton[] { "➕ Task yaratish", "📋 Mening tasklarim" },
+        new KeyboardButton[] { "➕ Yangi navbat yaratish", "📋 Mening navbatlarim" },
         // new KeyboardButton[] { "🔔 Takliflarim", "⚙️ Sozlamalar" }
     })
     {

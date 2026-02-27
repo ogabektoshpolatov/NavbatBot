@@ -21,12 +21,13 @@ public class AwaitingTaskDescriptionHandler(SessionService service) : IStateHand
 
         await bot.SendMessage(
             chatId: msg.Chat.Id,
-            text: "💬 Telegram Guruh ID ni yuboring:\n\n" +
+            text: "✅ Tavsif saqlandi!\n\n" +
+                  "💬 Uchinchi qadam: jamoangiz Telegram guruh ID sini kiriting.\n\n" +
                   "📌 Qanday topish:\n" +
-                  "1. Botni guruhga qo'shing\n" +
-                  "2. Guruhda /getgroupid yuboring\n" +
-                  "3. Bot ID ni ko'rsatadi\n\n" +
-                  "(Keyinroq sozlamoqchi bo'lsangiz /skip yozing)",
+                  "1️⃣ Meni guruhga qo'shing\n" +
+                  "2️⃣ Guruhda /getgroupid yuboring\n" +
+                  "3️⃣ ID ni nusxalab shu yerga yuboring\n\n" +
+                  "⚠️ Guruh bo'lmasa yoki keyinroq qo'shmoqchi bo'lsangiz:\n/skip",
             cancellationToken: ct);
     }
 }

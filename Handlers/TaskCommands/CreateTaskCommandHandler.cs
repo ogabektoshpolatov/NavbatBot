@@ -23,7 +23,10 @@ public class CreateTaskCommandHandler(SessionService sessionService) : ICommandH
 
         await botClient.SendMessage(
             chatId: message.Chat.Id,
-            text: "📝 Task nomini kiriting:",
+            text: "📝 Yangi navbat yaratish\n\n" +
+                  "Birinchi qadam: navbat nomini kiriting.\n" +
+                  "Masalan: \"Ofis tozalash\", \"Choy qaynatish\"\n\n" +
+                  "✏️ Nomni kiriting:",
             cancellationToken: cancellationToken);
     }
 }

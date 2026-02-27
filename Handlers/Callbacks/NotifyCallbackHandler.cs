@@ -70,13 +70,15 @@ public class NotifyCallbackHandler(
         await bot.EditMessageText(
             chatId: cq.Message!.Chat.Id,
             messageId: cq.Message.MessageId,
-            text: $"✅ *Task muvaffaqiyatli yaratildi!*\n\n" +
+            text: $"\ud83c\udf89 *Navbat muvaffaqiyatli yaratildi!*\\n\\n" +
                   $"📋 Nomi: *{task.Name}*\n" +
                   $"📅 Interval: *{(task.NotifyIntervalDays == 1 ? "Har kun" : task.NotifyIntervalDays == 3 ? "Har 3 kun" : "Har hafta")}*\n" +
                   $"🕐 Vaqt: *{task.NotifyTime:hh\\:mm}*\n" +
                   $"🔔 Guruhga xabar: *{(task.SendToGroup ? "✅ Ha" : "❌ Yo'q")}*\n\n" +
-                  $"🔗 *Invite link:*\n`{inviteLink}`\n\n" +
-                  $"📤 Shu linkni do'stlaringizga yuboring!",
+                  "─────────────────\n" +
+                  "👥 *Jamoa a'zolarini qo'shish uchun:*\n" +
+                  $"🔗 Quyidagi linkni ulashing:\n`{inviteLink}`\n\n" +
+                  "💡 Link ustiga bosib nusxa oling!",
             parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
             replyMarkup: BotKeyboards.TaskMenu(task.Id),
             cancellationToken: ct);

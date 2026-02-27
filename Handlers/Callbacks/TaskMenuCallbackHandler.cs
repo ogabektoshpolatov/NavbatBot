@@ -58,7 +58,9 @@ public class TaskMenuCallbackHandler(AppDbContext dbContext) : ICallbackHandler
                   $"📅 Interval: {intervalText}\n" +
                   $"🕐 Vaqt: {task.NotifyTime:hh\\:mm}\n" +
                   $"🔔 Guruhga xabar: {(task.SendToGroup ? "✅" : "❌")}\n" +
-                  $"🔗 Invite: {(task.InviteIsActive ? "✅ Faol" : "🔒 Yopiq")}",
+                  $"🔗 Invite: {(task.InviteIsActive ? "✅ Faol" : "🔒 Yopiq")}"+
+                  "─────────────────\n" + 
+                  "⚙️ Quyidan kerakli amalni tanlang:",
             parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
             replyMarkup: BotKeyboards.TaskMenu(taskId),
             cancellationToken: ct);
